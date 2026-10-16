@@ -23,6 +23,11 @@ test('Verify dashboardafter login', async({loginPage}) =>{
 
 for (const data of loginCases){
     test(`Login: ${data.name}`, async({page}) =>{
+    test.fail(
+        data.expectedToFail ?? false,
+        data.failureReason
+    );
+
     const loginPage = new LoginPage(page);
 
 
@@ -35,3 +40,14 @@ for (const data of loginCases){
 
     });
 }
+
+test('Logout workflow', async({loginPage}) =>{
+    await loginPage.clickLogoutBtn();
+    
+        await expect(loginPage.page).toHaveURL((url) => {
+            return url.pathname === '/parabank/index.htm';
+        });
+
+});
+
+

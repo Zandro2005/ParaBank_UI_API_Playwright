@@ -9,6 +9,7 @@ export class LoginPage {
     readonly overviewHeading: Locator;
     readonly greetingsText: Locator;
     readonly loginErrorMessage: Locator
+    readonly logoutBtn: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -18,6 +19,7 @@ export class LoginPage {
         this.overviewHeading = page.getByRole('heading', { name: 'Accounts Overview' });
         this.greetingsText = page.getByText('Welcome');
         this.loginErrorMessage = page.locator('#rightPanel p.error');
+        this.logoutBtn = page.getByRole('link', {name: 'Log Out'});
     }
 
     async navigate(): Promise<void>{
@@ -34,6 +36,10 @@ export class LoginPage {
     async clickLoginBtn(): Promise<void>{
         await this.loginBtn.click();
 
+    }
+
+    async clickLogoutBtn(): Promise<void>{
+        await this.logoutBtn.click();
     }
 
      getErrorMessage(message?: string): Locator {

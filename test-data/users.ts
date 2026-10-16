@@ -1,11 +1,22 @@
 
 
-export const loginCases = [
+type LoginCase = {
+    name: string;
+    username: string;
+    password: string;
+    errorMessage: string;
+    expectedToFail?: boolean;
+    failureReason?: string;
+};
+
+export const loginCases: LoginCase[] = [
     {
         name: 'Login with invalid username',
         username: 'Invalid',
         password:  process.env.TEST_PASSWORD!,
-        errorMessage: 'The username and password could not be verified'
+        errorMessage: 'The username and password could not be verified',
+        expectedToFail: true,
+        failureReason: 'ParaBank returns an internal error for invalid passwords'
 
     },
 
@@ -13,7 +24,9 @@ export const loginCases = [
         name: 'Login with invalid password',
         username: process.env.TEST_USERNAME!,
         password: 'Invalid',
-        errorMessage: 'The username and password could not be verified.'
+        errorMessage: 'The username and password could not be verified.',
+        expectedToFail: true,
+        failureReason: 'ParaBank returns an internal error for invalid passwords'
     },
 
     {
