@@ -5,6 +5,7 @@
     "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
+    "types": ["node"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -23,6 +24,7 @@
     "api/**/*.ts",
     "fixtures/**/*.ts",
     "utils/**/*.ts",
+    "test-data/**/*.ts",
     "playwright.config.ts"
   ],
   "exclude": [

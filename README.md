@@ -76,10 +76,10 @@ banking-playwright/
 │   └── bankingFixture.ts
 │
 ├── test-data/                      # Static and schema test fixtures
-│   ├── users.json
-│   ├── accounts.json
-│   ├── transfers.json
-│   └── payments.json
+│   ├── users.ts
+│   ├── accounts.ts
+│   ├── transfers.ts
+│   └── payments.ts
 │
 ├── utils/                          # Helper functions, data generators, assertions
 │   ├── testDataGenerator.ts

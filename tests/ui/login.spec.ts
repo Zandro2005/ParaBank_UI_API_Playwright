@@ -1,6 +1,7 @@
 import {test, expect} from '@fixtures/authFixture';
 import { LoginPage } from '@pages/LoginPage';
-import { log } from 'console';
+import { loginCases } from '@test-data/users';
+
 
 test('Valid login', async({page}) =>{
     const loginPage = new LoginPage(page);
@@ -20,16 +21,17 @@ test('Verify dashboardafter login', async({loginPage}) =>{
 
 });
 
-test('Login with invalid username', async({page}) =>{
+for (const data of loginCases){
+    test(`Login: ${data.name}`, async({page}) =>{
     const loginPage = new LoginPage(page);
-    const username = 'Unknown';
-    const password = process.env.TEST_PASSWORD!;
+
 
     await loginPage.navigate();
-    await loginPage.fillLoginCredentials(username, password);
+    await loginPage.fillLoginCredentials(data.username, data.password);
     await loginPage.clickLoginBtn();
     
-    await expect(loginPage.getErrorMessage('The username and password could not be verified.')).toBeVisible();
+    await expect(loginPage.loginErrorMessage).toContainText(data.errorMessage);
 
 
-});
+    });
+}
