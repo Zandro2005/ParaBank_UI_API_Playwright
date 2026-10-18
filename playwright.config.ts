@@ -30,7 +30,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
 
   // Opt out of parallel tests on CI if needed, or customize worker count
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 1 : 4,
 
   // Reporter configuration: HTML report + list view in terminal
  reporter: [

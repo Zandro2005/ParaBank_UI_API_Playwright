@@ -8,8 +8,10 @@ export class LoginPage {
     readonly loginBtn: Locator;
     readonly overviewHeading: Locator;
     readonly greetingsText: Locator;
-    readonly loginErrorMessage: Locator
+    readonly loginErrorMessage: Locator;
     readonly logoutBtn: Locator;
+    readonly accountTable: Locator;
+    readonly errorHeading: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -20,11 +22,17 @@ export class LoginPage {
         this.greetingsText = page.getByText('Welcome');
         this.loginErrorMessage = page.locator('#rightPanel p.error');
         this.logoutBtn = page.getByRole('link', {name: 'Log Out'});
+        this.accountTable = page.locator('#accountTable');
+        this.errorHeading = page.locator('#rightPanel h1.title');
     }
 
     async navigate(): Promise<void>{
         await this.page.goto(this.loginUrl);
 
+    }
+
+    async navigateToOverview(): Promise<void>{
+        await this.page.goto('overview.htm');
     }
 
     async fillLoginCredentials(username: string, password: string): Promise<void>{
