@@ -1,0 +1,125 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: ui\transfer.spec.ts >> Fund Transfer UI >> TC-TRF-UI-003 Transfer with empty amount
+- Location: tests\ui\transfer.spec.ts:47:9
+
+# Error details
+
+```
+Test timeout of 30000ms exceeded while setting up "loginPage".
+```
+
+```
+Error: locator.fill: Test timeout of 30000ms exceeded.
+Call log:
+  - waiting for getByRole('textbox').first()
+
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "Error 1015" [level=1] [ref=e5]
+    - generic [ref=e6]: "Ray ID: a4ebafe63fc4080f •"
+    - generic [ref=e7]: 2026-10-22 21:45:06 UTC
+    - heading "You are being rate limited" [level=2] [ref=e8]
+  - generic [ref=e10]:
+    - heading "What happened?" [level=2] [ref=e11]
+    - paragraph [ref=e12]: The owner of this website (parabank.parasoft.com) has banned you temporarily from accessing this website.
+    - paragraph [ref=e13]:
+      - text: Please see
+      - link "https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1015/" [ref=e14] [cursor=pointer]:
+        - /url: https://developers.cloudflare.com/support/troubleshooting/http-status-codes/cloudflare-1xxx-errors/error-1015/
+      - text: for more details.
+  - generic [ref=e16]:
+    - text: Was this page helpful?
+    - button "Yes" [ref=e17] [cursor=pointer]
+    - button "No" [ref=e18] [cursor=pointer]
+  - paragraph [ref=e20]:
+    - generic [ref=e21]:
+      - text: "Cloudflare Ray ID:"
+      - strong [ref=e22]: a4ebafe63fc4080f
+    - text: •
+    - generic [ref=e23]:
+      - text: "Your IP:"
+      - button "Click to reveal" [ref=e24] [cursor=pointer]
+      - text: •
+    - generic [ref=e25]:
+      - text: Performance & security by
+      - link "Cloudflare" [ref=e26] [cursor=pointer]:
+        - /url: https://www.cloudflare.com/5xx-error-landing
+```
+
+# Test source
+
+```ts
+  1  | import { Locator, Page } from '@playwright/test';
+  2  | 
+  3  | export class LoginPage {
+  4  |     readonly page: Page;
+  5  |     readonly loginUrl = 'index.htm';
+  6  |     readonly usernameInput: Locator;
+  7  |     readonly passwordInput: Locator;
+  8  |     readonly loginBtn: Locator;
+  9  |     readonly overviewHeading: Locator;
+  10 |     readonly greetingsText: Locator;
+  11 |     readonly loginErrorMessage: Locator;
+  12 |     readonly logoutBtn: Locator;
+  13 |     readonly accountTable: Locator;
+  14 |     readonly errorHeading: Locator;
+  15 | 
+  16 |     constructor(page: Page) {
+  17 |         this.page = page;
+  18 |         this.usernameInput = page.getByRole('textbox').first();
+  19 |         this.passwordInput = page.locator('input[name="password"]');
+  20 |         this.loginBtn = page.getByRole('button', { name: 'Log in' });
+  21 |         this.overviewHeading = page.getByRole('heading', { name: 'Accounts Overview' });
+  22 |         this.greetingsText = page.getByText('Welcome');
+  23 |         this.loginErrorMessage = page.locator('#rightPanel p.error');
+  24 |         this.logoutBtn = page.getByRole('link', {name: 'Log Out'});
+  25 |         this.accountTable = page.locator('#accountTable');
+  26 |         this.errorHeading = page.locator('#rightPanel h1.title');
+  27 |     }
+  28 | 
+  29 |     async navigate(): Promise<void>{
+  30 |         await this.page.goto(this.loginUrl);
+  31 | 
+  32 |     }
+  33 | 
+  34 |     async navigateToOverview(): Promise<void>{
+  35 |         await this.page.goto('overview.htm');
+  36 |     }
+  37 | 
+  38 |     async fillLoginCredentials(username: string, password: string): Promise<void>{
+> 39 |         await this.usernameInput.fill(username);
+     |                                  ^ Error: locator.fill: Test timeout of 30000ms exceeded.
+  40 |         await this.passwordInput.fill(password);
+  41 | 
+  42 |     }
+  43 | 
+  44 |     async clickLoginBtn(): Promise<void>{
+  45 |         await this.loginBtn.click();
+  46 | 
+  47 |     }
+  48 | 
+  49 |     async clickLogoutBtn(): Promise<void>{
+  50 |         await this.logoutBtn.click();
+  51 |     }
+  52 | 
+  53 |      getErrorMessage(message?: string): Locator {
+  54 |         return message
+  55 |             ? this.loginErrorMessage.filter({ hasText: message })
+  56 |             : this.loginErrorMessage;
+  57 |     }
+  58 | 
+  59 | 
+  60 | }
+```

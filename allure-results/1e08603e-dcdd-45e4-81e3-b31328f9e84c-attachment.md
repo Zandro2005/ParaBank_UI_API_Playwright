@@ -1,0 +1,285 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: ui\profile.spec.ts >> Login with freshly registered user
+- Location: tests\ui\profile.spec.ts:92:5
+
+# Error details
+
+```
+Error: expect(locator).toHaveText(expected) failed
+
+Locator: getByText('Your account was created')
+Expected: "Your account was created"
+Timeout: 5000ms
+Error: element(s) not found
+
+Call log:
+  - Expect "toHaveText" getByText('Your account was created') with timeout 5000ms
+  - waiting for getByText('Your account was created')
+
+```
+
+```yaml
+- link:
+  - /url: admin.htm
+  - img
+- link "ParaBank":
+  - /url: index.htm
+  - img "ParaBank"
+- paragraph: Experience the difference
+- list:
+  - listitem: Solutions
+  - listitem:
+    - link "About Us":
+      - /url: about.htm
+  - listitem:
+    - link "Services":
+      - /url: services.htm
+  - listitem:
+    - link "Products":
+      - /url: http://www.parasoft.com/jsp/products.jsp
+  - listitem:
+    - link "Locations":
+      - /url: http://www.parasoft.com/jsp/pr/contacts.jsp
+  - listitem:
+    - link "Admin Page":
+      - /url: admin.htm
+- list:
+  - listitem:
+    - link "home":
+      - /url: index.htm
+  - listitem:
+    - link "about":
+      - /url: about.htm
+  - listitem:
+    - link "contact":
+      - /url: contact.htm
+- heading "Customer Login" [level=2]
+- paragraph: Username
+- textbox
+- paragraph: Password
+- textbox
+- button "Log In"
+- paragraph:
+  - link "Forgot login info?":
+    - /url: lookup.htm
+- paragraph:
+  - link "Register":
+    - /url: register.htm
+- heading "Signing up is easy!" [level=1]
+- paragraph: If you have an account with us you can sign-up for free instant online access. You will have to provide some personal information.
+- table:
+  - rowgroup:
+    - 'row "First Name: Zandro"':
+      - cell "First Name:"
+      - cell "Zandro":
+        - textbox: Zandro
+      - cell
+    - 'row "Last Name: Guinialope"':
+      - cell "Last Name:"
+      - cell "Guinialope":
+        - textbox: Guinialope
+      - cell
+    - 'row "Address: 123 Main St"':
+      - cell "Address:"
+      - cell "123 Main St":
+        - textbox: 123 Main St
+      - cell
+    - 'row "City: Beverly Hills"':
+      - cell "City:"
+      - cell "Beverly Hills":
+        - textbox: Beverly Hills
+      - cell
+    - 'row "State: CA"':
+      - cell "State:"
+      - cell "CA":
+        - textbox: CA
+      - cell
+    - 'row "Zip Code: 90210"':
+      - cell "Zip Code:"
+      - cell "90210":
+        - textbox: "90210"
+      - cell
+    - 'row "Phone #: 555-1234"':
+      - 'cell "Phone #:"'
+      - cell "555-1234":
+        - textbox: 555-1234
+      - cell
+    - 'row "SSN: 123-45-6789"':
+      - cell "SSN:"
+      - cell "123-45-6789":
+        - textbox: 123-45-6789
+      - cell
+    - row:
+      - cell
+    - 'row "Username: Zandro"':
+      - cell "Username:"
+      - cell "Zandro":
+        - textbox: Zandro
+      - cell
+    - 'row "Password: Password123!"':
+      - cell "Password:"
+      - cell "Password123!":
+        - textbox: Password123!
+      - cell
+    - 'row "Confirm: Password123!"':
+      - cell "Confirm:"
+      - cell "Password123!":
+        - textbox: Password123!
+      - cell
+    - row "Register":
+      - cell
+      - cell "Register":
+        - button "Register"
+- list:
+  - listitem:
+    - link "Home":
+      - /url: index.htm
+    - text: "|"
+  - listitem:
+    - link "About Us":
+      - /url: about.htm
+    - text: "|"
+  - listitem:
+    - link "Services":
+      - /url: services.htm
+    - text: "|"
+  - listitem:
+    - link "Products":
+      - /url: http://www.parasoft.com/jsp/products.jsp
+    - text: "|"
+  - listitem:
+    - link "Locations":
+      - /url: http://www.parasoft.com/jsp/pr/contacts.jsp
+    - text: "|"
+  - listitem:
+    - link "Site Map":
+      - /url: sitemap.htm
+    - text: "|"
+  - listitem:
+    - link "Contact Us":
+      - /url: contact.htm
+- paragraph: © Parasoft. All rights reserved.
+- list:
+  - listitem: "Visit us at:"
+  - listitem:
+    - link "www.parasoft.com":
+      - /url: http://www.parasoft.com/
+```
+
+# Test source
+
+```ts
+  16  |         city: 'Beverly Hills',
+  17  |         state: 'CA',
+  18  |         zipCode: '90210',
+  19  |         phone: '555-1234',
+  20  |         ssn: '123-45-6789',
+  21  |         username: uniqueUsername,
+  22  |         password: 'Password123!',
+  23  |         confirmPassword: 'Password123!'
+  24  |     });
+  25  | 
+  26  |     await profilePage.clickRegisterBtn();
+  27  |     await expect(profilePage.welcomeMessage).toHaveText('Your account was created successfully. You are now logged in.')
+  28  | 
+  29  | });
+  30  | 
+  31  | test('Register with completely empty form', async({page}) =>{
+  32  |     const profilePage = new ProfilePage(page);
+  33  | 
+  34  |     await profilePage.navigate();
+  35  |     await profilePage.clickRegisterLink();
+  36  |     await profilePage.clickRegisterBtn();
+  37  | 
+  38  |     await expect(profilePage.registerErrorMessages.first()).toBeVisible();
+  39  | 
+  40  | });
+  41  | 
+  42  | test('Password confirmation mismatch', async({page}) =>{
+  43  |     const profilePage = new ProfilePage(page);
+  44  |     const uniqueUsername = `user_${Date.now().toString().slice(-6)}`;
+  45  | 
+  46  |     await profilePage.navigate();
+  47  |     await profilePage.clickRegisterLink();
+  48  |     await profilePage.fillRegisterCredentials({
+  49  |         firstname: 'John',
+  50  |         lastname: 'Doe',
+  51  |         address: '123 Main St',
+  52  |         city: 'Beverly Hills',
+  53  |         state: 'CA',
+  54  |         zipCode: '90210',
+  55  |         phone: '555-1234',
+  56  |         ssn: '123-45-6789',
+  57  |         username: uniqueUsername,
+  58  |         password: 'Password123!',
+  59  |         confirmPassword: 'Password123456!'
+  60  | 
+  61  |     });
+  62  | 
+  63  |     await expect(profilePage.registerErrorMessages).toHaveText('Passwords did not match.');
+  64  | 
+  65  | });
+  66  | 
+  67  | test('Duplicate username registration', async({page}) =>{
+  68  |     const profilePage = new ProfilePage(page);
+  69  | 
+  70  |     await profilePage.navigate();
+  71  |     await profilePage.clickRegisterLink();
+  72  |     await profilePage.fillRegisterCredentials({
+  73  |     
+  74  |         firstname: 'John',
+  75  |         lastname: 'Doe',
+  76  |         address: '123 Main St',
+  77  |         city: 'Beverly Hills',
+  78  |         state: 'CA',
+  79  |         zipCode: '90210',
+  80  |         phone: '555-1234',
+  81  |         ssn: '123-45-6789',
+  82  |         username: 'John',
+  83  |         password: 'Password123!',
+  84  |         confirmPassword: 'Password123!'
+  85  | 
+  86  |     });
+  87  |   
+  88  |     await expect(profilePage.registerErrorMessages).toHaveText('This username already exists.');
+  89  | 
+  90  | });
+  91  | 
+  92  | test('Login with freshly registered user', async({page}) =>{
+  93  |     const profilePage = new ProfilePage(page);
+  94  | 
+  95  |     await profilePage.navigate();
+  96  |     await profilePage.clickRegisterLink();
+  97  |     await profilePage.fillRegisterCredentials({
+  98  | 
+  99  |     
+  100 |         firstname: 'Zandro',
+  101 |         lastname: 'Guinialope',
+  102 |         address: '123 Main St',
+  103 |         city: 'Beverly Hills',
+  104 |         state: 'CA',
+  105 |         zipCode: '90210',
+  106 |         phone: '555-1234',
+  107 |         ssn: '123-45-6789',
+  108 |         username: 'Zandro',
+  109 |         password: 'Password123!',
+  110 |         confirmPassword: 'Password123!'
+  111 | 
+  112 | 
+  113 | 
+  114 |     });
+  115 | 
+> 116 |     await expect(profilePage.welcomeMessage).toHaveText('Your account was created');
+      |                                              ^ Error: expect(locator).toHaveText(expected) failed
+  117 | 
+  118 | });
+  119 | 
+  120 | 
+```

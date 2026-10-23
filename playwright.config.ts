@@ -29,8 +29,8 @@ export default defineConfig({
   // Retry on CI only, or set to 1 for local retries if desired
   retries: process.env.CI ? 2 : 0,
 
-  // Opt out of parallel tests on CI if needed, or customize worker count
-  workers: process.env.CI ? 1 : 4,
+  // Limit parallel workers to 2 to avoid triggering Cloudflare Error 1015 rate limiting on parabank.parasoft.com
+  workers: process.env.CI ? 1 : 2,
 
   // Reporter configuration: HTML report + list view in terminal
  reporter: [
