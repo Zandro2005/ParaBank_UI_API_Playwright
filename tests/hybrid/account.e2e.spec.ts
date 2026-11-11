@@ -6,7 +6,7 @@ import { LoginPage } from '@pages/LoginPage';
 import { ProfilePage } from '@pages/ProfilePage';
 import { AccountsPage } from '@pages/AccountsPage';
 import { generateRandomUser } from '@utils/testDataGenerator';
-import { toCents } from '@utils/apiHelpers';
+import { toCents, getAccountBalanceViaApi } from '@utils/apiHelpers';
 
 // Serial mode + pacing keeps live parabank.parasoft.com below Cloudflare 429 rate limits
 test.describe.configure({ mode: 'serial' });
@@ -149,6 +149,9 @@ test.describe('3.3 Hybrid Account & Profile Workflows', () => {
         );
         expect(createRes.status()).toBe(200);
         const newAccount: Account = await createRes.json();
+        // POST /createAccount initially returns balance: 0 before minimum opening deposit posts;
+        // fetch GET /accounts/{id} to read the actual funded opening balance
+        const apiBalance = await getAccountBalanceViaApi(accountApi, newAccount.id);
 
         // 2. UI: Refresh Accounts Overview and open the new account details page
         await accountsPage.navigate();
@@ -161,7 +164,7 @@ test.describe('3.3 Hybrid Account & Profile Workflows', () => {
         await expect(accountsPage.accountDetailsHeading).toBeVisible();
         await expect(accountsPage.detailsAccountId).toHaveText(String(newAccount.id));
         await expect(accountsPage.detailsAccountType).toHaveText('SAVINGS');
-        await expect(accountsPage.detailsBalance).toHaveText(`$${newAccount.balance.toFixed(2)}`);
+        await expect(accountsPage.detailsBalance).toHaveText(`$${apiBalance.toFixed(2)}`);
     });
 
     test('TC-ACC-HYB-002 UI Account Creation -> API Verification', async ({
