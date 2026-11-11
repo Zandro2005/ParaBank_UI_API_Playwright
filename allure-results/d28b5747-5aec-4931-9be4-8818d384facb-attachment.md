@@ -1,0 +1,108 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: api\accounts.api.spec.ts >> Login with unknown username
+- Location: tests\api\accounts.api.spec.ts:74:6
+
+# Error details
+
+```
+SyntaxError: Unexpected token 'I', "Invalid us"... is not valid JSON
+```
+
+# Test source
+
+```ts
+  1  | import {test, expect} from '@playwright/test';
+  2  | import { AuthApi } from '@api/AuthApi';
+  3  | 
+  4  | test('Authenticate with valid credentials', async({request}) =>{
+  5  |     const authApi = new AuthApi(request);
+  6  |     const response = await authApi.login(process.env.TEST_USERNAME!, process.env.TEST_PASSWORD!);
+  7  | 
+  8  |     const responseBody = await response.json();
+  9  |     console.log(responseBody)
+  10 | 
+  11 |     expect(response.status()).toBe(200);
+  12 |     expect(responseBody.id).toEqual(12212);
+  13 |     expect(responseBody.firstName).toBe('John');
+  14 |     expect(responseBody.address.state).toBe('CA');
+  15 | 
+  16 | });
+  17 | 
+  18 | test('Validate login JSON response schema', async({request}) =>{
+  19 |     const authApi = new AuthApi(request);
+  20 |     const response = await authApi.login(process.env.TEST_USERNAME!, process.env.TEST_PASSWORD!);
+  21 |     const responseBody = await response.json();
+  22 |     
+  23 |     expect(response.status()).toBe(200);
+  24 |     expect(responseBody.id).toBeDefined();
+  25 |     expect(responseBody.firstName).toBeDefined();
+  26 |     expect(responseBody.lastName).toBeDefined();
+  27 |     expect(responseBody.address).toBeDefined();
+  28 |     expect(responseBody.phoneNumber).toBeDefined();
+  29 |     expect(responseBody.ssn).toBeDefined();
+  30 | 
+  31 | });
+  32 | 
+  33 | test('Validate response headers', async({request}) =>{
+  34 |     const authApi = new AuthApi(request);
+  35 |     const response = await authApi.login(process.env.TEST_USERNAME!, process.env.TEST_PASSWORD!);
+  36 | 
+  37 |     const headers = response.headers();
+  38 | 
+  39 |     expect(headers['content-type']).toContain('application/json')
+  40 | 
+  41 | });
+  42 | 
+  43 | test('Content negotiation for XML', async({request}) =>{
+  44 |     const authApi = new AuthApi(request);
+  45 |     const response = await authApi.login('john', 'demo', 'application/xml');
+  46 | 
+  47 |     expect(response.status()).toBe(200);
+  48 | 
+  49 |     const responseHeader = await response.headers()['content-type'];
+  50 |     
+  51 |     expect(responseHeader).toContain('xml');
+  52 | 
+  53 |     const xmlBody = await response.text();
+  54 | 
+  55 |     expect(xmlBody).toContain('<customer>');
+  56 |     expect(xmlBody).toContain('</customer>');
+  57 |     expect(xmlBody).toContain('<id>12212</id>');
+  58 | 
+  59 | });
+  60 | 
+  61 | test('Login response latency SLA', async({request}) =>{
+  62 |     const authApi = new AuthApi(request);
+  63 |     const startTime = performance.now();
+  64 |     const response = await authApi.login('john', 'demo');
+  65 | 
+  66 |     expect(response.status()).toBe(200);
+  67 |     
+  68 |     const duration = performance.now() - startTime
+  69 | 
+  70 |     expect(duration).toBeLessThan(2000);
+  71 | 
+  72 | });
+  73 | 
+  74 | test.only('Login with unknown username', async({request}) =>{
+  75 |     const authApi = new AuthApi(request);
+  76 |     const response = await authApi.login('fake_user_999', 'demo');
+  77 | 
+  78 |     expect(response.status()).toBe(400);
+  79 | 
+> 80 |     const responseBody = await response.json();
+     |                          ^ SyntaxError: Unexpected token 'I', "Invalid us"... is not valid JSON
+  81 |     console.log(responseBody);
+  82 | 
+  83 | });
+  84 | 
+  85 | 
+  86 | 
+```

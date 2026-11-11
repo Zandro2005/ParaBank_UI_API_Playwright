@@ -171,3 +171,24 @@ test.describe('Transactions History & Search UI', () => {
     });
 
 });
+
+test.describe('3.5 Transactions Search UI Resilience (API Mocking)', () => {
+    test('TC-TXN-MCK-001 Find Transactions - 500 Server Error', async ({ loginPage, page }) => {
+        const transactionsPage = new TransactionsPage(page);
+
+        await transactionsPage.clickFindTransactionsLink();
+        await page.route('**/services_proxy/bank/**/transactions/**', async (route) => {
+            await route.fulfill({
+                status: 500,
+                contentType: 'text/plain',
+                body: 'Internal Server Error',
+            });
+        });
+
+        await transactionsPage.searchByAmount('100');
+
+        await expect(transactionsPage.errorHeading).toBeVisible();
+        await expect(page.locator('#errorContainer .error')).toBeVisible();
+        await expect(transactionsPage.transactionResultsHeading).not.toBeVisible();
+    });
+});

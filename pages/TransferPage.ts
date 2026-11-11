@@ -54,6 +54,31 @@ export class TransferPage {
         return value.trim();
     }
 
+    private async selectAccountOptionById(selectLocator: Locator, accountId: number | string): Promise<void> {
+        const idStr = String(accountId);
+        await selectLocator.locator(`option[value="${idStr}"]`).waitFor({ state: 'attached' });
+        await selectLocator.selectOption(idStr);
+    }
+
+    async selectFromAccountById(accountId: number | string): Promise<void> {
+        await this.selectAccountOptionById(this.fromAccountSelect, accountId);
+    }
+
+    async selectToAccountById(accountId: number | string): Promise<void> {
+        await this.selectAccountOptionById(this.toAccountSelect, accountId);
+    }
+
+    async transferFunds(
+        amount: string,
+        fromAccountId: number | string,
+        toAccountId: number | string
+    ): Promise<void> {
+        await this.fillAmount(amount);
+        await this.selectFromAccountById(fromAccountId);
+        await this.selectToAccountById(toAccountId);
+        await this.clickTransferBtn();
+    }
+
     async clickTransferBtn(): Promise<void> {
         await this.transferBtn.click();
     }

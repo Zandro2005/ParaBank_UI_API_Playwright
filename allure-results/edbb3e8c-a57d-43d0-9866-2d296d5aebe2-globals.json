@@ -1,0 +1,1 @@
+{"attachments":[],"errors":[{"message":"beforeAll hook failed: SyntaxError: Unexpected token '<', \"\n\r\n\n\n<!-- <!DOC\"... is not valid JSON","trace":"SyntaxError: Unexpected token '<', \"\n\r\n\n\n<!-- <!DOC\"... is not valid JSON\n    at C:\\Users\\ADMIN\\Documents\\ParaBank_api_ui_playwright\\tests\\api\\transfer.api.spec.ts:18:26","timestamp":1794346020411}]}

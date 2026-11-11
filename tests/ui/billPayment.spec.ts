@@ -2,19 +2,19 @@ import { test, expect } from '@fixtures/authFixture';
 import { BillPaymentPage } from '@pages/BillPaymentPage';
 import { AccountsPage } from '@pages/AccountsPage';
 
-test.describe('Bill Payment UI', () => {
+const validBillData = {
+    payeeName: 'Electric Utility Co',
+    address: '456 Power Ave',
+    city: 'Los Angeles',
+    state: 'CA',
+    zipCode: '90001',
+    phone: '555-888-9999',
+    account: '98765',
+    verifyAccount: '98765',
+    amount: '30.00'
+};
 
-    const validBillData = {
-        payeeName: 'Electric Utility Co',
-        address: '456 Power Ave',
-        city: 'Los Angeles',
-        state: 'CA',
-        zipCode: '90001',
-        phone: '555-888-9999',
-        account: '98765',
-        verifyAccount: '98765',
-        amount: '30.00'
-    };
+test.describe('Bill Payment UI', () => {
 
     test('TC-BILL-UI-001 Valid bill payment submission', async ({ loginPage, page }) => {
         const billPayPage = new BillPaymentPage(page);
@@ -124,4 +124,24 @@ test.describe('Bill Payment UI', () => {
         expect(dialogTriggered).toBe(false);
     });
 
+});
+
+test.describe('3.5 Bill Pay UI Resilience (API Mocking)', () => {
+    test('TC-BILL-MCK-001 Bill Pay - 500 Server Error', async ({ loginPage, page }) => {
+        const billPayPage = new BillPaymentPage(page);
+
+        await billPayPage.clickBillPayLink();
+        await page.route('**/services_proxy/bank/billpay*', async (route) => {
+            await route.fulfill({
+                status: 500,
+                contentType: 'text/plain',
+                body: 'Internal Server Error',
+            });
+        });
+
+        await billPayPage.submitBillPayment(validBillData);
+
+        await expect(billPayPage.errorHeading).toBeVisible();
+        await expect(billPayPage.billPayCompleteHeading).not.toBeVisible();
+    });
 });

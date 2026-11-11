@@ -93,6 +93,15 @@ export class AccountsPage {
         return texts.map(text => this.parseCurrency(text));
     }
 
+    async getAccountBalance(accountId: number | string): Promise<number> {
+        await this.accountRows.first().waitFor({ state: 'visible' });
+        const row = this.accountRows.filter({
+            has: this.page.locator('td a', { hasText: new RegExp(`^${accountId}$`) }),
+        });
+        const text = await row.locator('td:nth-child(2)').innerText();
+        return this.parseCurrency(text);
+    }
+
     async getTotalBalance(): Promise<number> {
         await this.totalBalanceCell.waitFor({ state: 'visible' });
         const text = await this.totalBalanceCell.innerText();

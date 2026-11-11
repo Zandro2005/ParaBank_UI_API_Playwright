@@ -1,0 +1,218 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: api\accounts.api.spec.ts >> Minimum opening deposit debit/credit
+- Location: tests\api\accounts.api.spec.ts:75:5
+
+# Error details
+
+```
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 100
+Received: 200
+```
+
+# Test source
+
+```ts
+  1   | import {test, expect} from '@playwright/test'
+  2   | import { AccountApi } from '@api/AccountApi'
+  3   | import { AuthApi } from '@api/AuthApi';
+  4   | 
+  5   | test('Fetch accountsfor customer', async({request}) =>{
+  6   |     const accountApi = new AccountApi(request);
+  7   |     const response = await accountApi.getCustomerAccounts(12212);
+  8   |     
+  9   |     expect(response.status()).toBe(200);
+  10  |     
+  11  | });
+  12  | 
+  13  | test('Validate account schema & data types', async({request}) =>{
+  14  |     const accountApi = new AccountApi(request);
+  15  |     const response = await accountApi.getCustomerAccounts(12212);
+  16  |     const responsebody = await response.json();
+  17  | 
+  18  |     expect(response.status()).toBe(200);
+  19  |     expect(responsebody[0].id).toBeDefined();
+  20  |     expect(responsebody[0].customerId).toBeDefined();
+  21  |     expect(responsebody[0].type).toBeDefined();
+  22  |     expect(responsebody[0].balance).toBeDefined();
+  23  | 
+  24  | });
+  25  | 
+  26  | test('Get account details by ID', async({request}) =>{
+  27  |     const accountApi = new AccountApi(request);
+  28  |     const response = await accountApi.getAccount(13344);
+  29  |     const responsebody = await response.json()
+  30  |     const requestId = responsebody.id;
+  31  | 
+  32  |     expect(response.status()).toBe(200);
+  33  |     expect(responsebody.id).toEqual(requestId);
+  34  |     
+  35  | 
+  36  | });
+  37  | 
+  38  | test('Verify customer account ownership', async({request}) =>{
+  39  |     const accountApi = new AccountApi(request)
+  40  |     const customerID = 12212; 
+  41  |     const response = await accountApi.getCustomerAccounts(customerID);
+  42  |     const responsebody = await response.json();
+  43  | 
+  44  |     expect(response.status()).toBe(200);
+  45  |     expect(customerID).toEqual(responsebody[0].customerId);
+  46  | 
+  47  | });
+  48  | 
+  49  | test('Create CHECKING account via API', async({request}) =>{
+  50  |     const accountApi = new AccountApi(request);
+  51  |     const customerId = 12212;
+  52  |     const accountType = 0;
+  53  |     const accountId = 13344;
+  54  |     const response = await accountApi.createAccount(customerId, accountType, accountId);
+  55  |     const responsebody = await response.json()
+  56  | 
+  57  |     expect(response.status()).toBe(200);
+  58  |     expect(responsebody.type).toBe('CHECKING');
+  59  | 
+  60  | });
+  61  | 
+  62  | test('Create SAVINGS account via API', async({request}) =>{
+  63  |     const accountApi = new AccountApi(request);
+  64  |     const customerId = 12212;
+  65  |     const accountType = 1;
+  66  |     const accountId = 13344;
+  67  |     const response = await accountApi.createAccount(customerId, accountType, accountId);
+  68  |     const responsebody = await response.json()
+  69  | 
+  70  |     expect(response.status()).toBe(200);
+  71  |     expect(responsebody.type).toBe('SAVINGS');
+  72  |     
+  73  | });
+  74  | 
+  75  | test('Minimum opening deposit debit/credit', async ({ request }) => {
+  76  |     const accountApi = new AccountApi(request);
+  77  |     const customerId = 12212;
+  78  |     const sourceAccountId = 13344;
+  79  | 
+  80  |     const initialSourceRes = await accountApi.getAccount(sourceAccountId);
+  81  |     const initialBalance = (await initialSourceRes.json()).balance;
+  82  | 
+  83  |     const createRes = await accountApi.createAccount(customerId, 0, sourceAccountId);
+  84  |     expect(createRes.status()).toBe(200);
+  85  |     const createdAccount = await createRes.json();
+  86  |     const newAccountId = createdAccount.id;
+  87  | 
+  88  |     const updatedSourceRes = await accountApi.getAccount(sourceAccountId);
+  89  |     const updatedSourceBalance = (await updatedSourceRes.json()).balance;
+  90  |     const newAccountRes = await accountApi.getAccount(newAccountId);
+  91  |     const newAccountBalance = (await newAccountRes.json()).balance;
+  92  | 
+> 93  |     expect(Math.abs(updatedSourceBalance - initialBalance)).toBe(100.00);
+      |                                                             ^ Error: expect(received).toBe(expected) // Object.is equality
+  94  | 
+  95  |     expect(Math.abs(newAccountBalance)).toBe(100.00);
+  96  | });
+  97  | 
+  98  | test('Newly created account in list', async ({ request }) => {
+  99  |     const accountApi = new AccountApi(request);
+  100 |     const customerId = 12212;
+  101 |     const sourceAccountId = 13344;
+  102 | 
+  103 |     // 1. Create a new account (0 = CHECKING)
+  104 |     const createRes = await accountApi.createAccount(customerId, 0, sourceAccountId);
+  105 |     expect(createRes.status()).toBe(200);
+  106 |     const newAccount = await createRes.json();
+  107 |     const newAccountId = newAccount.id;
+  108 | 
+  109 |     // 2. Fetch all accounts for this customer: GET /customers/{id}/accounts
+  110 |     const accountsRes = await accountApi.getCustomerAccounts(customerId);
+  111 |     expect(accountsRes.status()).toBe(200);
+  112 |     const accounts = await accountsRes.json();
+  113 | 
+  114 |     // 3. Verify new account ID is present in the customer's account list
+  115 |     const isPresent = accounts.some((account: { id: number }) => account.id === newAccountId);
+  116 |     expect(isPresent).toBe(true);
+  117 | });
+  118 | 
+  119 | test('TC-ACC-API-009 Balance decimal precision', async ({ request }) => {
+  120 |     const accountApi = new AccountApi(request);
+  121 |     const response = await accountApi.getAccount(13344);
+  122 | 
+  123 |     expect(response.status()).toBe(200);
+  124 |     const account = await response.json();
+  125 |     expect(account.balance).toBeDefined();
+  126 | 
+  127 |     // Balance should have at most 2 decimal places (balance * 100 rounded has zero remainder)
+  128 |     const decimals = account.balance.toString().split('.')[1]?.length || 0;
+  129 |     expect(decimals).toBeLessThanOrEqual(2);
+  130 | });
+  131 | 
+  132 | test('TC-ACC-API-010 Get non-existent account ID', async ({ request }) => {
+  133 |     const accountApi = new AccountApi(request);
+  134 |     const response = await accountApi.getAccount(999999999);
+  135 | 
+  136 |     expect([400, 404]).toContain(response.status());
+  137 |     const errorBody = await response.text();
+  138 |     expect(errorBody).toContain('Could not find account #999999999');
+  139 | });
+  140 | 
+  141 | test('TC-ACC-API-011 Get account with non-numeric ID', async ({ request }) => {
+  142 |     const accountApi = new AccountApi(request);
+  143 |     const response = await accountApi.getAccount('invalid_id');
+  144 | 
+  145 |     expect([400, 404]).toContain(response.status());
+  146 | });
+  147 | 
+  148 | test('TC-ACC-API-012 Get accounts for non-existent customer', async ({ request }) => {
+  149 |     const accountApi = new AccountApi(request);
+  150 |     const response = await accountApi.getCustomerAccounts(999999999);
+  151 | 
+  152 |     expect([400, 404]).toContain(response.status());
+  153 | });
+  154 | 
+  155 | test('TC-ACC-API-013 Create account with invalid type code', async ({ request }) => {
+  156 |     const accountApi = new AccountApi(request);
+  157 |     // Invalid type code 99 (valid: 0 = CHECKING, 1 = SAVINGS)
+  158 |     const response = await accountApi.createAccount(12212, 99, 13344);
+  159 | 
+  160 |     expect([400, 500]).toContain(response.status());
+  161 | });
+  162 | 
+  163 | test('TC-ACC-API-014 Create account missing parameters', async ({ request }) => {
+  164 |     const accountApi = new AccountApi(request);
+  165 |     const response = await accountApi.createAccount();
+  166 | 
+  167 |     expect([400, 500]).toContain(response.status());
+  168 | });
+  169 | 
+  170 | test('TC-ACC-API-015 Create account using another user\'s funds', async ({ request }) => {
+  171 |     const accountApi = new AccountApi(request);
+  172 |     // Customer 12212 attempts to create an account using another user's account ID (999999999)
+  173 |     const response = await accountApi.createAccount(12212, 0, 999999999);
+  174 | 
+  175 |     if (response.status() === 200) {
+  176 |         test.info().annotations.push({
+  177 |             type: 'known-defect',
+  178 |             description: 'AUT accepts createAccount using unverified / foreign fromAccountId funds.'
+  179 |         });
+  180 |     }
+  181 | 
+  182 |     expect([400, 403, 404, 200]).toContain(response.status());
+  183 | });
+  184 | 
+  185 | test('TC-ACC-API-016 Unauthorized accounts request', async ({ request }) => {
+  186 |     const accountApi = new AccountApi(request);
+  187 |     const response = await accountApi.getCustomerAccounts(12212);
+  188 | 
+  189 |     // Standard banking expectation is 401 Unauthorized.
+  190 |     // Document deviation as @known-defect since ParaBank REST demo is open.
+  191 |     if (response.status() === 200) {
+  192 |         test.info().annotations.push({
+  193 |             type: 'known-defect',
+```

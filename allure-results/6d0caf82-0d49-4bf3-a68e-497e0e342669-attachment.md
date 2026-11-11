@@ -1,0 +1,138 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: api\accounts.api.spec.ts >> Fetch accountsfor customer
+- Location: tests\api\accounts.api.spec.ts:5:5
+
+# Error details
+
+```
+Error: expect(received).toBe(expected) // Object.is equality
+
+Expected: 200
+Received: 429
+```
+
+# Test source
+
+```ts
+  1   | import { test, expect } from '@playwright/test';
+  2   | import { AccountApi } from '@api/AccountApi';
+  3   | import { AuthApi } from '@api/AuthApi';
+  4   | 
+  5   | test('Fetch accountsfor customer', async ({ request }) => {
+  6   |     // 1. Instantiate the AccountApi client using Playwright's request fixture
+  7   |     const accountApi = new AccountApi(request);
+  8   | 
+  9   |     // 2. Fetch all accounts belonging to customer ID 12212
+  10  |     const response = await accountApi.getCustomerAccounts(12212);
+  11  | 
+  12  |     // 3. Verify server responds with HTTP 200 OK
+> 13  |     expect(response.status()).toBe(200);
+      |                               ^ Error: expect(received).toBe(expected) // Object.is equality
+  14  | });
+  15  | 
+  16  | test('Validate account schema & data types', async ({ request }) => {
+  17  |     const accountApi = new AccountApi(request);
+  18  |     const response = await accountApi.getCustomerAccounts(12212);
+  19  |     const responsebody = await response.json();
+  20  | 
+  21  |     // 1. Confirm HTTP 200 OK
+  22  |     expect(response.status()).toBe(200);
+  23  | 
+  24  |     // 2. Validate essential contract fields exist on the first account object
+  25  |     expect(responsebody[0].id).toBeDefined();
+  26  |     expect(responsebody[0].customerId).toBeDefined();
+  27  |     expect(responsebody[0].type).toBeDefined();
+  28  |     expect(responsebody[0].balance).toBeDefined();
+  29  | });
+  30  | 
+  31  | test('Get account details by ID', async ({ request }) => {
+  32  |     const accountApi = new AccountApi(request);
+  33  | 
+  34  |     // 1. Request details for account 13344
+  35  |     const response = await accountApi.getAccount(13344);
+  36  |     const responsebody = await response.json();
+  37  |     const requestId = responsebody.id;
+  38  | 
+  39  |     // 2. Assert HTTP 200 OK and that returned ID equals requested account
+  40  |     expect(response.status()).toBe(200);
+  41  |     expect(responsebody.id).toEqual(requestId);
+  42  | });
+  43  | 
+  44  | test('Verify customer account ownership', async ({ request }) => {
+  45  |     const accountApi = new AccountApi(request);
+  46  |     const customerID = 12212;
+  47  | 
+  48  |     // 1. Fetch accounts for customer 12212
+  49  |     const response = await accountApi.getCustomerAccounts(customerID);
+  50  |     const responsebody = await response.json();
+  51  | 
+  52  |     // 2. Assert HTTP 200 OK and verify ownership link
+  53  |     expect(response.status()).toBe(200);
+  54  |     expect(customerID).toEqual(responsebody[0].customerId);
+  55  | });
+  56  | 
+  57  | test('Create CHECKING account via API', async ({ request }) => {
+  58  |     const accountApi = new AccountApi(request);
+  59  |     const customerId = 12212;
+  60  |     const accountType = 0; // 0 = CHECKING
+  61  |     const accountId = 13344; // Funding account
+  62  | 
+  63  |     // 1. Send create account request
+  64  |     const response = await accountApi.createAccount(customerId, accountType, accountId);
+  65  |     const responsebody = await response.json();
+  66  | 
+  67  |     // 2. Assert HTTP 200 OK and verify the created type is CHECKING
+  68  |     expect(response.status()).toBe(200);
+  69  |     expect(responsebody.type).toBe('CHECKING');
+  70  | });
+  71  | 
+  72  | test('Create SAVINGS account via API', async ({ request }) => {
+  73  |     const accountApi = new AccountApi(request);
+  74  |     const customerId = 12212;
+  75  |     const accountType = 1; // 1 = SAVINGS
+  76  |     const accountId = 13344; // Funding account
+  77  | 
+  78  |     // 1. Send create account request
+  79  |     const response = await accountApi.createAccount(customerId, accountType, accountId);
+  80  |     const responsebody = await response.json();
+  81  | 
+  82  |     // 2. Assert HTTP 200 OK and verify the created type is SAVINGS
+  83  |     expect(response.status()).toBe(200);
+  84  |     expect(responsebody.type).toBe('SAVINGS');
+  85  | });
+  86  | 
+  87  | test('Minimum opening deposit debit/credit', async ({ request }) => {
+  88  |     const accountApi = new AccountApi(request);
+  89  |     const customerId = 12212;
+  90  |     const sourceAccountId = 13344;
+  91  | 
+  92  |     // 1. Record initial source account balance
+  93  |     const initialSourceRes = await accountApi.getAccount(sourceAccountId);
+  94  |     const initialBalance = (await initialSourceRes.json()).balance;
+  95  | 
+  96  |     // 2. Create new checking account funded by source account
+  97  |     const createRes = await accountApi.createAccount(customerId, 0, sourceAccountId);
+  98  |     expect(createRes.status()).toBe(200);
+  99  |     const createdAccount = await createRes.json();
+  100 |     const newAccountId = createdAccount.id;
+  101 | 
+  102 |     // 3. Fetch updated source account balance and new account balance
+  103 |     const updatedSourceRes = await accountApi.getAccount(sourceAccountId);
+  104 |     const updatedSourceBalance = (await updatedSourceRes.json()).balance;
+  105 |     const newAccountRes = await accountApi.getAccount(newAccountId);
+  106 |     const newAccountBalance = (await newAccountRes.json()).balance;
+  107 | 
+  108 |     // 4. Assert opening deposit ($100) was deducted from source account
+  109 |     expect(Math.abs(updatedSourceBalance - initialBalance)).toBe(100.00);
+  110 | 
+  111 |     // 5. Assert new account starts with exactly the $100 opening deposit
+  112 |     expect(Math.abs(newAccountBalance)).toBe(100.00);
+  113 | });
+```

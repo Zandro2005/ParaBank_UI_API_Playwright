@@ -80,6 +80,20 @@ export class BillPaymentPage {
         return value.trim();
     }
 
+    async selectFromAccountById(accountId: number | string): Promise<void> {
+        const idStr = String(accountId);
+        await this.fromAccountSelect.locator(`option[value="${idStr}"]`).waitFor({ state: 'attached' });
+        await this.fromAccountSelect.selectOption(idStr);
+    }
+
+    async submitBillPayment(data: BillPayData, fromAccountId?: number | string): Promise<void> {
+        await this.fillBillPayForm(data);
+        if (fromAccountId !== undefined) {
+            await this.selectFromAccountById(fromAccountId);
+        }
+        await this.clickSendPaymentBtn();
+    }
+
     async clickSendPaymentBtn(): Promise<void> {
         await this.sendPaymentBtn.click();
     }

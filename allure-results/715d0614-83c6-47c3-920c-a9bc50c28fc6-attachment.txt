@@ -1,0 +1,7 @@
+{
+  responseDate: 1794259005992,
+  loanProviderName: 'Wealth Securities Dynamic Loans (WSDL)',
+  approved: false,
+  message: 'error.insufficient.funds.for.down.payment',
+  accountId: null
+}

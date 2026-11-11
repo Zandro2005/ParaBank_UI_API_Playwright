@@ -1,0 +1,3 @@
+[
+  { id: 13344, customerId: 12212, type: 'CHECKING', balance: 5022.93 }
+]

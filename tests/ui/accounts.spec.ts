@@ -180,3 +180,62 @@ test.describe('Accounts Overview UI', () => {
     });
 
 });
+
+test.describe('3.5 Accounts Overview UI Resilience (API Mocking)', () => {
+    test('TC-ACC-MCK-001 Accounts Overview - 500 Server Error', async ({ loginPage, page }) => {
+        const accountPage = new AccountsPage(page);
+
+        await page.route('**/services_proxy/bank/customers/*/accounts', async (route) => {
+            await route.fulfill({
+                status: 500,
+                contentType: 'text/plain',
+                body: 'Internal Server Error',
+            });
+        });
+
+        await page.goto('overview.htm');
+        await expect(page.locator('#showError')).toBeVisible();
+        await expect(page.locator('#showError h1.title')).toHaveText('Error!');
+        await expect(accountPage.overviewTable).not.toBeVisible();
+    });
+
+    test('TC-ACC-MCK-002 Accounts Overview - Empty Accounts Array', async ({
+        loginPage,
+        page,
+    }) => {
+        const accountPage = new AccountsPage(page);
+
+        await page.route('**/services_proxy/bank/customers/*/accounts', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: '[]',
+            });
+        });
+
+        await accountPage.navigate();
+        await expect(accountPage.accountRows).toHaveCount(0);
+        await expect(accountPage.totalBalanceCell).toHaveText('$0.00');
+    });
+
+    test('TC-ACC-MCK-003 Accounts Overview - Stubbed Balances', async ({ loginPage, page }) => {
+        const accountPage = new AccountsPage(page);
+
+        await page.route('**/services_proxy/bank/customers/*/accounts', async (route) => {
+            await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify([
+                    { id: 90001, customerId: 12212, type: 'CHECKING', balance: 100.0 },
+                    { id: 90002, customerId: 12212, type: 'SAVINGS', balance: 250.5 },
+                ]),
+            });
+        });
+
+        await accountPage.navigate();
+        await expect(accountPage.accountRows).toHaveCount(2);
+        await expect(accountPage.balanceCells.nth(0)).toHaveText('$100.00');
+        await expect(accountPage.balanceCells.nth(1)).toHaveText('$250.50');
+        await expect(accountPage.totalBalanceCell).toHaveText('$350.50');
+    });
+});

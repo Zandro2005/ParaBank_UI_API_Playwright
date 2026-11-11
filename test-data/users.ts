@@ -43,3 +43,12 @@ export const loginCases: LoginCase[] = [
         errorMessage: 'Please enter a username and password.'
     }
 ];
+
+export const userProfileTestData = {
+    updatedCity: 'NewCity',
+    updatedPhoneNumber: '555-9999',
+    nonExistentCustomerId: 999999999,
+    nonNumericCustomerId: 'invalid_user',
+    peerCustomerId: 12212,
+    duplicateUsernameMessage: 'This username already exists.',
+};

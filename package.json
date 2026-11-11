@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:ui": "playwright test tests/ui",
-    "test:api": "playwright test tests/api",
-    "test:hybrid": "playwright test tests/hybrid",
+    "test:ui": "playwright test --project=ui-tests",
+    "test:api": "playwright test --project=api-tests --workers=1",
+    "test:hybrid": "playwright test --project=hybrid-tests",
     "test:headed": "playwright test --headed",
     "test:debug": "playwright test --debug",
     "test:ui-mode": "playwright test --ui",
